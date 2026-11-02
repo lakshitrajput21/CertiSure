@@ -54,8 +54,8 @@ export const Navbar: React.FC = () => {
                 <Search size={15} className="mr-1.5" />
                 Verify Certificate
               </Link>
-              <Link
-                to="/verifications"
+              {user && role !== 'CERTIFICATE_HOLDER' && <Link
+                to="/institution/verifications"
                 className={`inline-flex items-center px-1 pt-1 text-sm font-medium border-b-2 transition-colors ${
                   isActive('/verifications')
                     ? 'border-blue-600 text-blue-600'
@@ -63,7 +63,7 @@ export const Navbar: React.FC = () => {
                 }`}
               >
                 Verification Log
-              </Link>
+              </Link>}
               <Link
                 to="/institution/dashboard"
                 className={`inline-flex items-center px-1 pt-1 text-sm font-medium border-b-2 transition-colors ${

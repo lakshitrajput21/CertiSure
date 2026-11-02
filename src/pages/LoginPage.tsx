@@ -23,7 +23,7 @@ export const LoginPage: React.FC = () => {
   const { login, loginAsDemoRole } = useAuth();
 
   const [email, setEmail] = useState('admin@pec.edu.in');
-  const [password, setPassword] = useState('demo-password-123');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
@@ -95,8 +95,7 @@ export const LoginPage: React.FC = () => {
             <Info size={16} className="shrink-0 text-blue-600 mt-0.5" />
             <div>
               <strong className="block font-semibold">Demo Authentication Notice:</strong>
-              This is a frontend demonstration. You can sign in using any mock credentials or click
-              one of the 1-click demo role personas below.
+              Sign in with a seeded development account. Demo role login is available only when the backend runs in development mode.
             </div>
           </div>
 
@@ -158,7 +157,7 @@ export const LoginPage: React.FC = () => {
                 type="button"
                 onClick={() =>
                   alert(
-                    'Demo Notice: In this frontend prototype, passwords are not stored or managed on a backend. Select any demo persona below.'
+                    'Use your seeded development credentials or a development-only demo persona.'
                   )
                 }
                 className="font-medium text-blue-600 hover:text-blue-800"

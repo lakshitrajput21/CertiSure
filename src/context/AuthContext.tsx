@@ -21,10 +21,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Read persisted demo session on mount
-    const current = authService.getCurrentUser();
-    setUser(current);
-    setIsLoading(false);
+    authService.restoreSession().then(setUser).finally(() => setIsLoading(false));
   }, []);
 
   const login = async (email: string, password = ''): Promise<User> => {

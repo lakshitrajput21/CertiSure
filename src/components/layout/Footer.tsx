@@ -24,7 +24,7 @@ export const Footer: React.FC = () => {
             </p>
             <div className="text-xs text-slate-500 pt-2 border-t border-navy-900">
               <strong className="text-slate-400">Note:</strong> Frontend prototype for academic
-              evaluation. Employs mock data and simulated integrity checks.
+              evaluation. Uses database-backed certificate verification and SHA-256 integrity checks.
             </div>
           </div>
 

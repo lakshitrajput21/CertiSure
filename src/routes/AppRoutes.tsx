@@ -30,7 +30,7 @@ export const AppRoutes: React.FC = () => {
         <Route path="/" element={<LandingPage />} />
         <Route path="/verify" element={<VerifyPage />} />
         <Route path="/verify/:id" element={<VerifyPage />} />
-        <Route path="/verifications" element={<VerificationHistoryPage />} />
+
         <Route path="/login" element={<LoginPage />} />
       </Route>
 
@@ -38,7 +38,7 @@ export const AppRoutes: React.FC = () => {
       <Route
         path="/institution"
         element={
-          <ProtectedRoute allowedRoles={['INSTITUTION_ADMIN']}>
+          <ProtectedRoute allowedRoles={['INSTITUTION_ADMIN', 'SUPER_ADMIN', 'SYSTEM_ADMIN']}>
             <DashboardLayout />
           </ProtectedRoute>
         }

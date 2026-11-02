@@ -323,7 +323,7 @@ export const IssueCertificatePage: React.FC = () => {
                   Publish & Register Credential
                 </Button>
                 <p className="text-[11px] text-slate-400 text-center mt-2">
-                  Simulated local mock registration with auto-generated ID & QR verification link.
+                  Certificate will be registered in PostgreSQL with a verifiable ID and QR link.
                 </p>
               </div>
             </form>

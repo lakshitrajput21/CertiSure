@@ -61,7 +61,7 @@ export const InstitutionSettingsPage: React.FC = () => {
       {successMsg && (
         <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 flex items-center gap-2">
           <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
-          <span>Profile configuration saved and persisted to local mock storage!</span>
+          <span>Profile configuration saved to the database!</span>
         </div>
       )}
 

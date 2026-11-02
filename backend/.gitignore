@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.env
+storage/temp/
+storage/certificates/*.pdf
+!storage/certificates/.gitkeep
+*.log
+npm-debug.log*
+.DS_Store
