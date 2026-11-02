@@ -1,3 +1,4 @@
+
 import { z } from 'zod';
 
 export const issueCertificateSchema = z.object({
@@ -21,11 +22,14 @@ export const issueCertificateSchema = z.object({
         'INTERNSHIP_CREDENTIAL',
       ]),
       issueDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Issue date must be in YYYY-MM-DD format.'),
-      expiryDate: z
-        .string()
-        .regex(/^\d{4}-\d{2}-\d{2}$/, 'Expiry date must be in YYYY-MM-DD format.')
-        .optional()
-        .nullable(),
+      expiryDate: z.preprocess(
+        (value) => value === '' ? null : value,
+        z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/, 'Expiry date must be in YYYY-MM-DD format.')
+          .optional()
+          .nullable()
+      ),
       description: z.string().trim().min(5, 'Description must be at least 5 characters.'),
       gradeOrScore: z.string().trim().optional(),
       signatoryName: z.string().trim().optional(),
