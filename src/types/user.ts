@@ -1,4 +1,4 @@
-export type UserRole = 'INSTITUTION_ADMIN' | 'CERTIFICATE_HOLDER' | 'PUBLIC_VERIFIER';
+export type UserRole = 'SUPER_ADMIN' | 'SYSTEM_ADMIN' | 'INSTITUTION_ADMIN' | 'CERTIFICATE_HOLDER' | 'PUBLIC_VERIFIER';
 
 export interface User {
   id: string;

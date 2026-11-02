@@ -1,0 +1,255 @@
+datasource db {
+  provider  = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// -----------------------------------------------------------------------------
+// Enums
+// -----------------------------------------------------------------------------
+
+enum UserRole {
+  SUPER_ADMIN
+  SYSTEM_ADMIN
+  INSTITUTION_ADMIN
+  CERTIFICATE_HOLDER
+  PUBLIC_VERIFIER
+}
+
+enum InstitutionStatus {
+  PENDING
+  APPROVED
+  SUSPENDED
+  REJECTED
+}
+
+// Strictly lifecycle states: EXPIRED is calculated dynamically from expiryDate;
+// INTEGRITY_FAILED, NOT_FOUND, SERVICE_ERROR are VerificationOutcomes.
+enum CertificateStatus {
+  ACTIVE
+  REVOKED
+}
+
+enum CertificateType {
+  DEGREE
+  DIPLOMA
+  COURSE_COMPLETION
+  ACADEMIC_MERIT
+  PROFESSIONAL_LICENSE
+  INTERNSHIP_CREDENTIAL
+}
+
+enum AuditAction {
+  ISSUED
+  VERIFIED
+  REVOKED
+  MODIFIED
+  VIEWED
+  REISSUED
+}
+
+enum VerificationOutcome {
+  VALID
+  REVOKED
+  EXPIRED
+  INTEGRITY_FAILED
+  INTEGRITY_NOT_CHECKED
+  NOT_FOUND
+  INVALID_INPUT
+  SERVICE_ERROR
+  ISSUER_SUSPENDED
+}
+
+enum VerificationMethod {
+  QR_CODE
+  DIRECT_SEARCH
+  URL_LOOKUP
+  API_DEMO
+  FILE_UPLOAD
+}
+
+// -----------------------------------------------------------------------------
+// Models
+// -----------------------------------------------------------------------------
+
+model User {
+  id              String         @id @default(uuid())
+  email           String         @unique
+  passwordHash    String
+  name            String
+  role            UserRole       @default(CERTIFICATE_HOLDER)
+  designation     String?
+  avatarUrl       String?
+  accountStatus   String         @default("ACTIVE") // ACTIVE, SUSPENDED
+  isEmailVerified Boolean        @default(false)
+  institutionId   String?
+  institution     Institution?   @relation(fields: [institutionId], references: [id])
+  
+  // Relations
+  heldCertificates Certificate[] @relation("HolderCertificates")
+  createdEvents    CertificateEvent[]
+  refreshTokens    RefreshToken[]
+  reissueActions   ReissueLink[]
+
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([email])
+  @@index([institutionId])
+}
+
+model RefreshToken {
+  id          String    @id @default(uuid())
+  tokenHash   String    @unique
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  isRevoked   Boolean   @default(false)
+  expiresAt   DateTime
+  createdAt   DateTime  @default(now())
+
+  @@index([userId])
+  @@index([tokenHash])
+}
+
+model Institution {
+  id                    String            @id // e.g. "inst-pec-chd"
+  name                  String
+  code                  String            @unique // e.g. "PEC-CHD"
+  accreditationId       String            // e.g. "NAAC-A-PLUS-2023-9918"
+  contactEmail          String
+  phone                 String
+  website               String
+  address               String
+  city                  String
+  state                 String
+  country               String            @default("India")
+  defaultSignatoryName  String
+  defaultSignatoryTitle String
+  establishedYear       Int               @default(1921)
+  status                InstitutionStatus @default(APPROVED)
+  verificationBadgeText String            @default("Accredited Autonomous Institution Registry")
+  logoUrl               String?
+  rejectionReason       String?           @db.Text
+  appliedAt             DateTime          @default(now())
+  
+  // Cryptographic Public Keys for Signature Verification (FR-15 / Ed25519)
+  publicKey             String?           // Hex/Base64 Ed25519 public key
+  keyId                 String?           // Key identifier for rotation
+
+  // Relations
+  users                 User[]
+  certificates          Certificate[]
+
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+
+  @@index([code])
+  @@index([status])
+}
+
+model Certificate {
+  id                 String            @id @default(uuid()) // Internal DB ID
+  documentId         String            @unique // Public Business ID (e.g. CS-2024-88491 or CS-2026-X8K1N4P7M9)
+  institutionId      String
+  institution        Institution       @relation(fields: [institutionId], references: [id])
+  
+  // Verified Holder Relation (Point 10)
+  holderId           String?
+  holder             User?             @relation("HolderCertificates", fields: [holderId], references: [id])
+  holderName         String
+  holderEmail        String
+  
+  // Credential Data
+  title              String
+  type               CertificateType
+  description        String            @db.Text
+  gradeOrScore       String?
+  signatoryName      String
+  signatoryTitle     String
+  issueDate          DateTime          @db.Date
+  expiryDate         DateTime?         @db.Date
+  
+  // Lifecycle state (Point 1: ACTIVE, REVOKED)
+  status             CertificateStatus @default(ACTIVE)
+  
+  // File & Cryptographic Proofs (Point 2)
+  pdfPath            String            // Private storage path: "storage/certificates/CertiSure-CS-2024-88491.pdf"
+  pdfFileName        String            // "CertiSure-CS-2024-88491.pdf"
+  pdfFileSize        Int               // Exact byte length
+  fileHash           String            // "sha256:<64-char-hex>" (Physical PDF byte hash)
+  canonicalHash      String?           // "sha256:<64-char-hex>" (Deterministic canonical metadata hash)
+  digitalSignature   String?           // Optional Ed25519 signature over fileHash
+  signatureKeyId     String?
+  
+  // Revocation Metadata (FR-26, FR-29)
+  revocationReason   String?           @db.Text
+  revocationDate     DateTime?
+  revokedById        String?
+  
+  // Relations
+  auditTrail         CertificateEvent[]
+  verificationLogs   VerificationLog[]
+  supersededBy       ReissueLink?      @relation("SupersededCert")
+  replaces           ReissueLink?      @relation("ReplacedCert")
+
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  @@index([documentId])
+  @@index([holderEmail])
+  @@index([institutionId])
+  @@index([status])
+  @@index([expiryDate])
+}
+
+model CertificateEvent {
+  id             String       @id @default(uuid())
+  certificateId  String
+  certificate    Certificate  @relation(fields: [certificateId], references: [id], onDelete: Cascade)
+  action         AuditAction  // ISSUED, VERIFIED, REVOKED, MODIFIED, VIEWED
+  actorId        String?
+  actor          User?        @relation(fields: [actorId], references: [id])
+  actorName      String       // Human readable identifier
+  notes          String?      @db.Text
+  ipAddress      String?
+  metadata       Json?
+  createdAt      DateTime     @default(now())
+
+  @@index([certificateId])
+  @@index([createdAt])
+}
+
+model VerificationLog {
+  id               String               @id @default(uuid())
+  certificateId    String?              // Null if NOT_FOUND or INVALID_INPUT
+  certificate      Certificate?         @relation(fields: [certificateId], references: [id], onDelete: SetNull)
+  searchedId       String               // Sanitized searched ID
+  certificateTitle String?
+  holderName       String?
+  institutionName  String?
+  outcome          VerificationOutcome
+  method           VerificationMethod   @default(DIRECT_SEARCH)
+  ipLocation       String?
+  ipAddress        String?
+  userAgent        String?
+  notes            String?              @db.Text
+  createdAt        DateTime             @default(now())
+
+  @@index([searchedId])
+  @@index([outcome])
+  @@index([createdAt])
+}
+
+model ReissueLink {
+  id                       String       @id @default(uuid())
+  originalCertificateId   String       @unique
+  originalCertificate     Certificate  @relation("SupersededCert", fields: [originalCertificateId], references: [id])
+  replacementCertificateId String      @unique
+  replacementCertificate  Certificate  @relation("ReplacedCert", fields: [replacementCertificateId], references: [id])
+  reason                   String       @db.Text
+  reissuedById             String
+  reissuedBy               User         @relation(fields: [reissuedById], references: [id])
+  createdAt                DateTime     @default(now())
+}

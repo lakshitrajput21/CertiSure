@@ -46,8 +46,6 @@ export const VerifyPage: React.FC = () => {
     setResult(null);
 
     try {
-      // Simulate network verification delay (500ms)
-      await new Promise((r) => setTimeout(r, 500));
       const verificationData = await verificationService.verifyCertificate(certId.trim(), method);
       setResult(verificationData);
     } catch (err) {
@@ -255,7 +253,7 @@ export const VerifyPage: React.FC = () => {
 
                 <div className="sm:col-span-2 md:col-span-3 pt-4 border-t border-slate-100 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 text-xs text-slate-500">
                   <div className="space-y-1">
-                    <span className="font-semibold text-slate-600">Simulated Digital Fingerprint:</span>
+                    <span className="font-semibold text-slate-600">SHA-256 PDF Fingerprint:</span>
                     <p className="font-mono text-[11px] text-slate-500 bg-slate-50 p-1.5 rounded border border-slate-200 break-all">
                       {result.certificate.digitalFingerprint}
                     </p>
@@ -313,8 +311,7 @@ export const VerifyPage: React.FC = () => {
             <div className="space-y-1">
               <span className="font-semibold text-slate-800">Verification Demonstration Notice:</span>
               <p>
-                The outcome displayed is computed from local mock test records stored in the CertiSure
-                frontend demonstration client. In a production environment, verification queries will
+                The outcome displayed is computed from the CertiSure backend and PostgreSQL registry. Verification queries
                 execute against an institutional registry API backed by tamper-evident digital signatures.
               </p>
             </div>

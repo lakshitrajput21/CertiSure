@@ -27,7 +27,7 @@ export const VerificationHistoryPage: React.FC = () => {
     verificationService.getVerificationLogs().then((res) => {
       setLogs(res);
       setIsLoading(false);
-    });
+    }).catch(() => setIsLoading(false));
   }, []);
 
   const filteredLogs = useMemo(() => {
@@ -97,7 +97,7 @@ export const VerificationHistoryPage: React.FC = () => {
         <Info size={16} className="text-blue-600 shrink-0 mt-0.5" />
         <div>
           <strong className="block font-semibold">Simulated Audit Telemetry:</strong>
-          All records shown below reflect mock verification queries captured during this session.
+          Verification events are loaded from the PostgreSQL-backed audit history.
           Every query performed on the Public Verification page is recorded here in real time.
         </div>
       </div>

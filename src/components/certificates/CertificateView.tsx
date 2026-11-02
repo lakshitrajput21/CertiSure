@@ -21,7 +21,7 @@ export const CertificateView: React.FC<CertificateViewProps> = ({
 }) => {
   const [isDownloading, setIsDownloading] = useState(false);
   const [copied, setCopied] = useState(false);
-  const { role } = useAuth();
+  const { role, isAuthenticated } = useAuth();
   const certRef = useRef<HTMLDivElement>(null);
 
   const handleDownloadPdf = async () => {
@@ -81,7 +81,7 @@ export const CertificateView: React.FC<CertificateViewProps> = ({
             Print
           </Button>
 
-          <Button
+          {isAuthenticated && <Button
             variant="primary"
             size="sm"
             onClick={handleDownloadPdf}
@@ -89,7 +89,7 @@ export const CertificateView: React.FC<CertificateViewProps> = ({
             icon={<Download size={14} />}
           >
             Download Specimen PDF
-          </Button>
+          </Button>}
 
           {showAdminActions && role === 'INSTITUTION_ADMIN' && certificate.status === 'VALID' && onRevokeClick && (
             <Button

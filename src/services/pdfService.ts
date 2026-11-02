@@ -1,6 +1,7 @@
 import jsPDF from 'jspdf';
 import { Certificate } from '../types/certificate';
 import { formatDate } from '../utils/dateUtils';
+import { apiUrl, session } from './apiClient';
 
 export class PdfService {
   /**
@@ -8,6 +9,22 @@ export class PdfService {
    * Labeled clearly with DEMONSTRATION / SPECIMEN indicators.
    */
   async generateCertificatePdf(cert: Certificate): Promise<void> {
+    const token = session.token();
+    if (!token) throw new Error('Please sign in to download this certificate.');
+    const response = await fetch(apiUrl(`/certificates/${encodeURIComponent(cert.id)}/pdf`), {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!response.ok) throw new Error(`Certificate PDF download failed (${response.status})`);
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `CertiSure-${cert.id}.pdf`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    return;
     // Landscape A4 dimensions: 297mm x 210mm
     const doc = new jsPDF({
       orientation: 'landscape',

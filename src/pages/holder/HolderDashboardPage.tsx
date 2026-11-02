@@ -34,8 +34,8 @@ export const HolderDashboardPage: React.FC = () => {
   const [selectedCertForQr, setSelectedCertForQr] = useState<Certificate | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  // Filter certificates to holder's email if available, or show Lakshit Rajput's / first user's certs
-  const holderEmail = user?.holderEmail || user?.email || 'lakshit.rajput@pec.edu.in';
+  // Show only the authenticated holder's certificates.
+  const holderEmail = user?.holderEmail || user?.email || '';
 
   const userCertificates = useMemo(() => {
     const list = certificates.filter(
@@ -43,8 +43,7 @@ export const HolderDashboardPage: React.FC = () => {
         c.holderEmail.toLowerCase() === holderEmail.toLowerCase() ||
         c.holderName.toLowerCase() === (user?.name || '').toLowerCase()
     );
-    // If no specific match found, fallback to showing valid degrees so holder view is never empty for evaluation
-    return list.length > 0 ? list : certificates.slice(0, 3);
+    return list;
   }, [certificates, holderEmail, user]);
 
   const stats = useMemo(() => {

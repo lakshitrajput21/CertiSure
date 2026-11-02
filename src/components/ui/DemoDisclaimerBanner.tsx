@@ -12,10 +12,10 @@ export const DemoDisclaimerBanner: React.FC = () => {
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 text-[10px] font-bold tracking-wider uppercase border border-blue-400/30">
-            Frontend Prototype
+            Development Environment
           </span>
           <span className="text-slate-300 font-medium">
-            CertiSure Academic SE Project — Local Mock Data & Simulated Verification
+            CertiSure Academic SE Project — PostgreSQL-backed Certificate Registry
           </span>
         </div>
 
@@ -53,7 +53,7 @@ export const DemoDisclaimerBanner: React.FC = () => {
           <button
             onClick={() => resetAllDemoData()}
             className="flex items-center gap-1 text-[11px] text-slate-400 hover:text-white ml-2 transition-colors"
-            title="Reset all mock data to initial samples"
+            title="Database reset is disabled"
           >
             <RotateCcw size={11} />
             <span>Reset Samples</span>

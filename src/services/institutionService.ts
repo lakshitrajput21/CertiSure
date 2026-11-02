@@ -1,15 +1,11 @@
 import { InstitutionProfile } from '../types/institution';
-import { storageService } from './storageService';
-
-export class InstitutionService {
+import { api } from './apiClient';
+class InstitutionService {
   async getProfile(): Promise<InstitutionProfile> {
-    return storageService.getInstitution();
+    return (await api<{ profile: InstitutionProfile }>('/institution/profile')).profile;
   }
-
   async updateProfile(profile: InstitutionProfile): Promise<InstitutionProfile> {
-    storageService.setInstitution(profile);
-    return profile;
+    return (await api<{ profile: InstitutionProfile }>('/institution/profile', { method: 'PUT', body: JSON.stringify(profile) })).profile;
   }
 }
-
 export const institutionService = new InstitutionService();

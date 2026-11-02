@@ -43,7 +43,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
           <h2 className="text-xl font-bold text-navy-950">Restricted Route</h2>
           <p className="text-xs text-slate-600 leading-relaxed">
             This section requires the <strong className="font-semibold">{targetRole}</strong> role.
-            Your active demo account is currently configured as{' '}
+            Your account is authenticated as{' '}
             <strong className="font-semibold capitalize">{role.toLowerCase().replace('_', ' ')}</strong>.
           </p>
           <div className="pt-2 flex flex-col gap-2">
@@ -64,7 +64,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
             </Button>
           </div>
           <p className="text-[10px] text-slate-400 italic">
-            Simulated frontend role check for evaluation purposes.
+            Access is enforced by the backend on every protected API request.
           </p>
         </Card>
       </div>

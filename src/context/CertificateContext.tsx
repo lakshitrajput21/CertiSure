@@ -3,7 +3,8 @@ import { Certificate, CertificateIssueInput } from '../types/certificate';
 import { InstitutionProfile } from '../types/institution';
 import { certificateService, DashboardStats } from '../services/certificateService';
 import { institutionService } from '../services/institutionService';
-import { storageService } from '../services/storageService';
+import { INITIAL_INSTITUTION } from '../data/mockInstitution';
+import { useAuth } from './AuthContext';
 
 export interface ToastMessage {
   id: string;
@@ -30,9 +31,10 @@ interface CertificateContextType {
 const CertificateContext = createContext<CertificateContextType | undefined>(undefined);
 
 export const CertificateProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user, isLoading: authLoading } = useAuth();
   const [certificates, setCertificates] = useState<Certificate[]>([]);
   const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [institution, setInstitution] = useState<InstitutionProfile>(storageService.getInstitution());
+  const [institution, setInstitution] = useState<InstitutionProfile>(INITIAL_INSTITUTION);
   const [isLoading, setIsLoading] = useState(true);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
@@ -51,8 +53,16 @@ export const CertificateProvider: React.FC<{ children: React.ReactNode }> = ({ c
   }, [dismissToast]);
 
   const refreshData = useCallback(async () => {
+    if (!user) { setCertificates([]); setStats(null); setIsLoading(false); return; }
     setIsLoading(true);
     try {
+      if (user.role === 'CERTIFICATE_HOLDER') {
+        const certs = await certificateService.getCertificatesByHolderEmail(user.email);
+        setCertificates(certs);
+        setStats(null);
+        setIsLoading(false);
+        return;
+      }
       const [certs, newStats, inst] = await Promise.all([
         certificateService.getAllCertificates(),
         certificateService.getDashboardStats(),
@@ -67,11 +77,11 @@ export const CertificateProvider: React.FC<{ children: React.ReactNode }> = ({ c
     } finally {
       setIsLoading(false);
     }
-  }, [showToast]);
+  }, [showToast, user?.id, user?.role]);
 
   useEffect(() => {
-    refreshData();
-  }, [refreshData]);
+    if (!authLoading) refreshData();
+  }, [authLoading, refreshData]);
 
   const issueCertificate = async (input: CertificateIssueInput): Promise<Certificate> => {
     try {
@@ -118,9 +128,7 @@ export const CertificateProvider: React.FC<{ children: React.ReactNode }> = ({ c
   };
 
   const resetAllDemoData = async () => {
-    storageService.resetAllData();
-    await refreshData();
-    showToast('info', 'Demo Data Reset', 'All records have been restored to initial sample state.');
+    showToast('warning', 'Reset unavailable', 'Database records cannot be reset from the dashboard.');
   };
 
   return (
